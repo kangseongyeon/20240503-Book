@@ -1,24 +1,23 @@
 package controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import service.BookService;
 import service.MemberService;
-import service.ProdService;
 import util.ScanUtil;
 import util.View;
 import view.Print;
 
 public class MainController extends Print {
+	
 	static public Map<String, Object> sessionStorage = new HashMap<>();
-	
 	MemberService memberService = MemberService.getInstance();
-	ProdService prodService = ProdService.getInstance();
+	BookService bookService = BookService.getInstance();
 	
-	boolean debug = true;
-
 	public static void main(String[] args) {
 		new MainController().start();
 	}
@@ -33,133 +32,152 @@ public class MainController extends Print {
 			case ADMIN:
 				view = admin();
 				break;
-			case MEMBER:
-				view = member();
-				break;
 			case LOGIN:
 				view = login();
 				break;
-			case ADMIN_PROD_INSERT:
-				view = insert();
+			case BOOK_HOME:
+				view = bookHome();
 				break;
-			case ADMIN_PROD_DELETE:
-				view = delete();
+			case BOOK_LIST:
+				view = bookList();
 				break;
-			case ADMIN_PROD_UPDATE:
-				view = update();
+			case BOOK_UPDATE:
+				view = bookUpdate();
 				break;
-			case ADMIN_PROD_LIST:
-				view = adminList();
+			case HOLD_HOME:
+				view = holdHome();
 				break;
-			case ADMIN_PROD_DETAILE:
-				view = detaile();
+			case HOLD_LIST:
+				view = holdList();
 				break;
+//			case MEMBER:
+//				view = member();
+//				break;
+			
 			default:
 				break;
 			}
 		}
 	}
-	
-	
-	private View detaile() {
-		if (debug) System.out.println("---------- 상품 전체 출력 ----------");
-		System.out.println("1. 다음 페이지");
-		System.out.println("2. 이전 페이지");
-		System.out.println("3. 홈 (관리자)");
-		
-		int sel = ScanUtil.menu();
-		if (sel == 1) return View.ADMIN_PROD_INSERT;
-		else if (sel == 2) return View.ADMIN_PROD_DELETE;
-		else if (sel == 3) return View.ADMIN_PROD_INSERT;
-		
-		return View.ADMIN_PROD_DELETE;
-	}
-	
-	private View update() {
-		if (debug) System.out.println("---------- 상품 변경 ----------");
-		List<Map<String, Object>> list = prodService.list();
-		
-		for (Map<String, Object> map : list) {
-			System.out.println(map);
-		}
-		
-		int prodNo = ScanUtil.nextInt("상품 번호: ");
-		String name = ScanUtil.nextLine("상품명: ");
-		String type = ScanUtil.nextLine("타입: ");
-		int price = ScanUtil.nextInt("가격: ");
-		
-		List<Object> param = new ArrayList();
-		param.add(name);
-		param.add(type);
-		param.add(price);
-		param.add(prodNo);
-		
-		prodService.update(param);
-		
-		return View.ADMIN_PROD_LIST;
-	}
-	
-	
-	private View delete() {
-		if (debug) System.out.println("---------- 상품 삭제 ----------");	
-		List<Map<String, Object>> list = prodService.list();
-		
-		for (Map<String, Object> map : list) {
-			System.out.println(map);
-		}
-		int prodNo = ScanUtil.nextInt("상품 번호 : ");
-		List<Object> param = new ArrayList();
-		param.add(prodNo);
-		
-		int tesult = prodService.delete(param);
-		
-		int result = prodService.delete(param);
-		if (result == 0) {
-			System.out.println("삭제를 실패했습니다.");
-			return View.ADMIN_PROD_DELETE;
-		}
-		
-		return View.ADMIN_PROD_LIST;
-	}
-	
-	
-	private View insert() {
-		if (debug) System.out.println("---------- 상품 추가 ----------");
-		List<Object> param = new ArrayList();
-		String name = ScanUtil.nextLine("상품명 : ");
-		String type = ScanUtil.nextLine("타입 : ");
-		int price = ScanUtil.nextInt("가격 : ");
-		
-		param.add(name);
-		param.add(type);
-		param.add(price);
-		
-		prodService.insert(param);
-		
-		return View.ADMIN_PROD_LIST;
-	}
-	
 
-	private View adminList() {
-		List<Map<String, Object>> list = prodService.list();
+	
+	private View holdList() {
+		
+		int page = 1;
+		if (sessionStorage.containsKey("page")) page = (int) sessionStorage.remove("page");
+		int startNo = 1 + (page-1) * 5;
+		int endNo = page * 5;
+		
+		List<Object> param = new ArrayList();
+		param.add(startNo);
+		param.add(endNo);
+		
+		List<Map<String, Object>> list = bookService.holdList(param);
 		for (Map<String, Object> map : list) {
 			System.out.println(map);
 		}
+		System.out.println("< 이전 페이지 \t 다음 페이지 >");
+		System.out.println("1. 홈");
+		String sel = ScanUtil.nextLine("메뉴 : ");
 		
-		System.out.println("1. 다음페이지");
-		System.out.println("2. 이전페이지");
-		System.out.println("3. 홈(관리자)");
+		if (sel.equals("<")) {
+			if (page != 1) page--;
+			sessionStorage.put("page", page);
+			return View.HOLD_LIST;
+		}
+		else if (sel.equals(">")) {
+			page++;
+			sessionStorage.put("page", page);
+			return View.HOLD_LIST;
+		}
+		else if (sel.equals("1")) {
+	
+			return View.HOLD_HOME;
+		}
+		else return View.HOLD_LIST;
+	}
+
+	private View holdHome() {
+		System.out.println("1. 도서 구매");
+		System.out.println("2. 도서 폐기");
+		System.out.println("3. 보유도서 출력");
+		System.out.println("4. 관리자 홈");
+		int sel = ScanUtil.menu();
+		
+		if (sel == 1) return View.HOLD_INSESRT;
+		else if (sel == 2) return View.HOLE_DELETE;
+		else if (sel == 3) return View.HOLD_LIST;
+		else if (sel == 4) return View.ADMIN;
+		else return View.HOLD_HOME;
+	}
+	
+	private View bookUpdate() {
+		List<Map<String, Object>> bookList = bookService.bookList();
+		bookListPrint(bookList);
+		
+		int bookNo = ScanUtil.nextInt("책 번호 선택");
+		System.out.println("1. 제목");
+		System.out.println("2. 내용");
+		System.out.println("3. 전체");
 		
 		int sel = ScanUtil.menu();
-		if (sel == 1) return View.ADMIN_PROD_LIST;
-		else if (sel == 2) return View.ADMIN_PROD_LIST;
-		else if (sel == 3) return View.ADMIN;
-		else return View.ADMIN_PROD_LIST;
+		
+		List<Object> param = new ArrayList();
+		if (sel == 1 || sel == 3) {
+			String title = ScanUtil.nextLine("제목 : ");
+			param.add(title);
+		}
+		if (sel == 2 || sel == 3) {
+			String content = ScanUtil.nextLine("내용 : ");
+			param.add(content);
+		}
+		param.add(bookNo);
+		bookService.bookUpdate(param, sel);
+		
+		return View.BOOK_LIST;
 	}
+
+	private View bookList() {
+		List<Map<String, Object>> bookList = bookService.bookList();
+		bookListPrint(bookList);
+		
+		return View.BOOK_HOME;
+	}
+
+	private View bookHome() {
+		System.out.println("1. 도서 정보 전체 출력");
+		System.out.println("2. 도서 정보 추가");
+		System.out.println("3. 도서 정보 변경");
+		System.out.println("4. 도서 정보 삭제");
+		System.out.println("5. 관리자 홈");
+		
+		int sel = ScanUtil.menu();
+		if (sel == 1)  return View.BOOK_LIST;
+		else if (sel == 2) return View.BOOK_INSERT;
+		else if (sel == 3) return View.BOOK_UPDATE;
+		else if (sel == 4) return View.BOOK_DELETE;
+		else if (sel == 5) return View.ADMIN;
+		else return View.BOOK_HOME;	
+	}
+
+	private View admin() {
+		if (!sessionStorage.containsKey("admin")) {
+			sessionStorage.put("role", 2);
+			return View.LOGIN;
+		}
+		
+		printAdmin();
+		
+		int sel = ScanUtil.menu();
+		if (sel == 1)  return View.BOOK_HOME;
+		else if (sel == 2) return View.HOLD_HOME;
+		else return View.ADMIN;
+	}
+
 	
 	private View login() {
-		String id = ScanUtil.nextLine("ID >> ");
-		String pw = ScanUtil.nextLine("PASS >> ");
+		String id = "admin"; 	// ScanUtil.nextLine("ID >> ");
+		String pw = "1234";		// ScanUtil.nextLine("PASS >> ");
 		int role = (int) sessionStorage.get("role");
 		
 		List<Object> param = new ArrayList();
@@ -177,48 +195,14 @@ public class MainController extends Print {
 		else return View.ADMIN;		
 	}
 	
-	private View admin() {
-		// admin 값이 없으면 LOGIN으로 보냄
-		if (!sessionStorage.containsKey("admin")) {
-			sessionStorage.put("role", 2);
-			return View.LOGIN;
-		}
-		
-		System.out.println("---------- 관리자 ----------");
-		System.out.println("1. 상품 추가");
-		System.out.println("2. 상품 삭제");
-		System.out.println("3. 상품 변경");
-		System.out.println("4. 상품 전체 출력");
-		System.out.println("5. 로그아웃");
-		
-		int sel = ScanUtil.menu();
-		if (sel == 1) return View.ADMIN_PROD_INSERT;
-		else if (sel == 2) return View.ADMIN_PROD_DELETE;
-		else if (sel == 3) return View.ADMIN_PROD_UPDATE;
-		else if (sel == 4) return View.ADMIN_PROD_LIST;
-		
-//		sessionStorage에서 값을 지우면 ? -> 로그아웃이 됨
-		else if (sel == 5) {
-			sessionStorage.remove("admin");
-			return View.HOME;
-		}
-		else return View.ADMIN;
-	}
 	
 	private View home() {
-		System.out.println("---------- 홈 ----------");
-		System.out.println("1. 관리자");
-		System.out.println("2. 일반 회원");
+		printHome();
 		
 		int sel = ScanUtil.menu();
-		if (sel == 1) return View.ADMIN;
+		if (sel == 1)  return View.ADMIN;
 		else if (sel == 2) return View.MEMBER;
 		else return View.HOME;
 	}
 
-	private View member() {
-		if (debug) System.out.println("========== 멤버 ==========");
-		
-		return View.HOME;
-	}
 }
