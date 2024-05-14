@@ -21,12 +21,12 @@ public class BookDao {
 	
 	JDBCUtil jdbc = JDBCUtil.getInstance();
 	
-	public List<Map<String, Object>> bookList() {
-		String sql = " SELECT BOOK_NO, TITLE, CONTENT, "
-				+ "			  TO_CHAR(PUBDATE, 'YYYY.MM.DD') PUBDATE FROM BOOK";
+
+	public List<Map<String, Object>> testList() {
+		String sql = " select * from notice ";
 		return jdbc.selectList(sql);
 	}
-
+	
 	public void bookUpdate(List<Object> param, int sel) {
 		String sql = " UPDATE BOOK "
 				   + " SET  ";

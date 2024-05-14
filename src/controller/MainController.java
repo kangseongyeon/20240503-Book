@@ -72,6 +72,7 @@ public class MainController extends Print {
 		param.add(startNo);
 		param.add(endNo);
 		
+		
 		List<Map<String, Object>> list = bookService.holdList(param);
 		for (Map<String, Object> map : list) {
 			System.out.println(map);
@@ -110,6 +111,8 @@ public class MainController extends Print {
 		else if (sel == 4) return View.ADMIN;
 		else return View.HOLD_HOME;
 	}
+	
+	
 	
 	private View bookUpdate() {
 		List<Map<String, Object>> bookList = bookService.bookList();
