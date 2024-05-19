@@ -136,7 +136,6 @@ public class MainController extends Print {
 		}
 		param.add(bookNo);
 		bookService.bookUpdate(param, sel);
-		
 		return View.BOOK_LIST;
 	}
 
