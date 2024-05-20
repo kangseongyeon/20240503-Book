@@ -23,7 +23,8 @@ public class MainController extends Print {
 	}
 
 	private void start() {
-		View view = View.HOME;
+//		View view = View.HOME;
+		View view = View.HOLD_LIST;
 		while (true) {
 			switch (view) {
 			case HOME:
